@@ -3,8 +3,8 @@
 #include <MD_MIDIFile.h>
 #include <SoftwareSerial.h>
 
-#define MIDI_IN_RX_PIN 8
-#define MIDI_OUT_TX_PIN 9
+#define STEREO_MIDI_OUT_TX_PIN 8
+#define DIN_MIDI_OUT_TX_PIN 9
 #define SD_SELECT_PIN 10
 
 unsigned short play = 0;
@@ -13,8 +13,8 @@ byte midiInByte;
 SdFat SD;
 MD_MIDIFile SMF;
 
-SoftwareSerial midiInSerial = SoftwareSerial();
-SoftwareSerial midiOutSerial = SoftwareSerial();
+SoftwareSerial stereoMidiOutSerial = SoftwareSerial();
+SoftwareSerial dinMidiOutSerial = SoftwareSerial();
 
 void midiCallback(midi_event *midiEvent);
 void midiSilence(void);
@@ -22,21 +22,19 @@ void midiSilence(void);
 void setup() {
   int SMFerr;
 
-  Serial.begin(9600);
+  // MIDI in
+  Serial.begin(31250);
   while (!Serial);
 
-  midiOutSerial.setTX(MIDI_OUT_TX_PIN);
-  midiOutSerial.begin(31250);
-  while (!midiOutSerial);
-  Serial.println(F("Initialized midiOutSerial."));
-
-  midiInSerial.setRX(MIDI_IN_RX_PIN);
-  midiInSerial.begin(31250);
-  while (!midiInSerial);
-  Serial.println(F("Initialized midiInSerial."));
+  stereoMidiOutSerial.setTX(STEREO_MIDI_OUT_TX_PIN);
+  stereoMidiOutSerial.begin(31250);
+  while (!stereoMidiOutSerial);
+  dinMidiOutSerial.setTX(DIN_MIDI_OUT_TX_PIN);
+  dinMidiOutSerial.begin(31250);
+  while (!dinMidiOutSerial);
 
   if (!SD.begin(SD_SELECT_PIN, SPI_HALF_SPEED)) {
-    Serial.println(F("Failed to initialize SD card."));
+    // TODO print error to display
     while (1);
   }
 
@@ -46,8 +44,7 @@ void setup() {
   SMFerr = SMF.load();
 
   if (SMFerr != -1) {
-    Serial.println(F("SMF load error."));
-    Serial.println(SMFerr);
+    // TODO print error to display
     while (1);
   }
 
@@ -55,16 +52,13 @@ void setup() {
 }
 
 void loop() {
-  if (midiInSerial.available()) {
-    midiInByte = midiInSerial.read();
+  if (Serial.available()) {
+    midiInByte = Serial.read();
 
     if (midiInByte == 0xFA) { // Start
-      Serial.println(F("Start"));
-      midiInSerial.flush();
       SMF.restart();
       play = 1;
     } else if (midiInByte == 0xFC) { // Stop
-      Serial.println(F("Stop"));
       midiSilence();
       play = 0;
     }
@@ -80,8 +74,10 @@ void loop() {
 }
 
 void midiCallback(midi_event *e) {
-  midiOutSerial.write(e->data[0] | e->channel);
-  midiOutSerial.write(&e->data[1], e->size - 1);
+  stereoMidiOutSerial.write(e->data[0] | e->channel);
+  stereoMidiOutSerial.write(&e->data[1], e->size - 1);
+  dinMidiOutSerial.write(e->data[0] | e->channel);
+  dinMidiOutSerial.write(&e->data[1], e->size - 1);
 }
 
 void midiSilence(void) {
