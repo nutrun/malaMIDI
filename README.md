@@ -8,6 +8,9 @@ Setting https://github.com/MajicDesigns/MD_MIDIFile/blob/ea736bd12c1226991caf11f
 
 ### PINS:
 MICRO SD: CKL 13, DO 12, DI 11, CS 10
+
 MIDI IN: Serial RX
+
 DIN MIDI OUT: 9
+
 STEREOJACK MIDI OUT: 8
