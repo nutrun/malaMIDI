@@ -5,3 +5,9 @@ MIDI sequencer. Plays MIDI files from an SD card and syncs with a master device 
 Depends on https://github.com/nutrun/ArduinoCore-avr/tree/master/libraries/SoftwareSerial for single pin SoftwareSerial communication.
 
 Setting https://github.com/MajicDesigns/MD_MIDIFile/blob/ea736bd12c1226991caf11f4d61bacf4198c2d4f/src/MD_MIDIFile.h#L371 to `1` since only playing single track MIDI files.
+
+### PINS:
+MICRO SD: CKL 13, DO 12, DI 11, CS 10
+MIDI IN: Serial RX
+DIN MIDI OUT: 9
+STEREOJACK MIDI OUT: 8
